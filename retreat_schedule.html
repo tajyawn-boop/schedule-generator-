@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>수련회 일정표 · 하나님 나라, 하나님의 방식으로</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3f0e9; --bg-2: #e8e3d6; --card: #ffffff;
+    --ink: #2a2620; --ink-soft: #6b6353; --ink-faint: #9a9484;
+    --line: #ddd5c3; --indigo: #3a456b; --indigo-deep: #2a3352;
+    --gold: #c0922f; --gold-deep: #9a7424;
+    --sky: #4a7d99; --rose: #b0596a; --leaf: #5d8a5d;
+    --shadow: rgba(40, 35, 20, 0.14);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Noto Sans KR', sans-serif; background: var(--bg);
+    color: var(--ink); line-height: 1.7; -webkit-tap-highlight-color: transparent;
+  }
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0;
+    background:
+      radial-gradient(ellipse 55% 40% at 18% 0%, rgba(58,69,107,0.12), transparent),
+      radial-gradient(ellipse 45% 35% at 88% 8%, rgba(192,146,47,0.10), transparent);
+  }
+  .wrap { max-width: 820px; margin: 0 auto; padding: 0 16px 90px; position: relative; z-index: 1; }
+
+  header { text-align: center; padding: 46px 14px 22px; }
+  .theme-ribbon {
+    font-family: 'Gowun Batang', serif; font-size: 0.86rem;
+    letter-spacing: 0.18em; color: var(--gold-deep); margin-bottom: 8px;
+  }
+  h1 {
+    font-family: 'Gowun Batang', serif; font-weight: 700;
+    font-size: 2.2rem; line-height: 1.3; margin-bottom: 6px;
+  }
+  h1 .em { color: var(--indigo); }
+  .subtitle { color: var(--ink-soft); font-size: 0.96rem; }
+  .retreat-info {
+    display: inline-flex; gap: 14px; flex-wrap: wrap; justify-content: center;
+    margin-top: 12px; font-size: 0.88rem; color: var(--ink-soft);
+  }
+  .retreat-info input {
+    font-family: 'Noto Sans KR', sans-serif; font-size: 0.88rem;
+    border: none; border-bottom: 1.5px dashed var(--line);
+    background: transparent; color: var(--ink); padding: 2px 4px;
+    text-align: center;
+  }
+  .retreat-info input:focus { outline: none; border-bottom-color: var(--gold); }
+
+  /* 모드 전환 */
+  .mode-bar {
+    display: flex; gap: 6px; justify-content: center; margin: 20px 0 22px;
+  }
+  .mode-btn {
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 700; font-size: 0.92rem;
+    padding: 9px 20px; border: 2px solid var(--line); border-radius: 22px;
+    background: var(--card); color: var(--ink-soft); cursor: pointer;
+    transition: all 0.15s;
+  }
+  .mode-btn:hover { border-color: var(--indigo); }
+  .mode-btn.active { background: var(--indigo); color: #fff; border-color: var(--indigo); }
+
+  /* 날짜 탭 */
+  .day-tabs { display: flex; gap: 7px; justify-content: center; margin-bottom: 18px; flex-wrap: wrap; }
+  .day-tab {
+    font-family: 'Gowun Batang', serif; font-size: 0.95rem;
+    padding: 8px 20px; border: none; border-radius: 9px;
+    background: var(--card); color: var(--ink-soft); cursor: pointer;
+    box-shadow: 0 2px 6px var(--shadow); transition: all 0.15s;
+  }
+  .day-tab.active { background: var(--gold); color: #fff; }
+
+  .day-panel { display: none; }
+  .day-panel.active { display: block; animation: fade 0.3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+  /* 일정 항목 */
+  .schedule-list { display: flex; flex-direction: column; }
+  .sched-item {
+    display: flex; gap: 0; position: relative;
+  }
+  .sched-time {
+    flex-shrink: 0; width: 76px; text-align: right; padding: 14px 12px 14px 0;
+    font-family: 'Gowun Batang', serif; font-weight: 700; font-size: 0.95rem;
+    color: var(--indigo);
+  }
+  .sched-line {
+    flex-shrink: 0; width: 2px; background: var(--line); position: relative;
+    margin: 0 2px;
+  }
+  .sched-dot {
+    position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+    width: 12px; height: 12px; border-radius: 50%;
+    background: var(--card); border: 3px solid var(--gold);
+  }
+  .sched-card {
+    flex: 1; background: var(--card); border: 1.5px solid var(--line);
+    border-radius: 11px; padding: 11px 14px; margin: 8px 0 8px 12px;
+    box-shadow: 0 2px 8px var(--shadow);
+  }
+  .sched-card.kind-worship { border-left: 4px solid var(--rose); }
+  .sched-card.kind-meal { border-left: 4px solid var(--gold); }
+  .sched-card.kind-program { border-left: 4px solid var(--sky); }
+  .sched-card.kind-rest { border-left: 4px solid var(--leaf); }
+  .sched-card.kind-move { border-left: 4px solid var(--ink-soft); }
+  .sched-top { display: flex; align-items: center; gap: 8px; }
+  .sched-title { font-weight: 700; font-size: 1rem; flex: 1; }
+  .kind-chip {
+    font-size: 0.72rem; padding: 2px 9px; border-radius: 9px;
+    background: var(--bg-2); color: var(--ink-soft); white-space: nowrap;
+  }
+  .sched-note { font-size: 0.84rem; color: var(--ink-soft); margin-top: 3px; }
+  .sched-del {
+    background: none; border: none; color: var(--ink-faint);
+    cursor: pointer; font-size: 0.85rem;
+  }
+  .sched-del:hover { color: var(--rose); }
+
+  /* 편집 입력 */
+  .edit-card {
+    background: var(--bg-2); border-radius: 12px; padding: 15px;
+    margin-top: 14px;
+  }
+  .edit-grid {
+    display: grid; grid-template-columns: 90px 1fr 110px; gap: 8px; margin-bottom: 8px;
+  }
+  .edit-card label { font-size: 0.78rem; color: var(--ink-soft); display: block; margin-bottom: 2px; }
+  .edit-card input, .edit-card select {
+    width: 100%; font-family: 'Noto Sans KR', sans-serif; font-size: 0.92rem;
+    border: 1.5px solid var(--line); border-radius: 7px;
+    padding: 7px 9px; background: var(--card); color: var(--ink);
+  }
+  .edit-card input:focus, .edit-card select:focus { outline: none; border-color: var(--indigo); }
+  .edit-note-row { margin-bottom: 8px; }
+  .add-sched-btn {
+    width: 100%; font-family: 'Noto Sans KR', sans-serif; font-weight: 700;
+    font-size: 0.92rem; padding: 9px; border: none; border-radius: 8px;
+    background: var(--indigo); color: #fff; cursor: pointer;
+  }
+  .add-sched-btn:hover { background: var(--indigo-deep); }
+
+  .editor-only { display: none; }
+  body.mode-edit .editor-only { display: block; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--ink-faint); }
+  .empty .big { font-size: 2.2rem; margin-bottom: 8px; }
+
+  .toolbar { display: flex; gap: 8px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
+  .btn {
+    font-family: 'Noto Sans KR', sans-serif; font-weight: 700; font-size: 0.86rem;
+    padding: 8px 16px; border: 2px solid var(--line); border-radius: 9px;
+    background: var(--card); color: var(--ink); cursor: pointer;
+    transition: all 0.14s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.danger { color: var(--rose); border-color: var(--rose); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%;
+    transform: translateX(-50%) translateY(90px);
+    background: var(--indigo); color: #fff;
+    font-size: 0.93rem; font-weight: 700;
+    padding: 11px 24px; border-radius: 22px; z-index: 200;
+    transition: transform 0.32s cubic-bezier(0.2,0,0.2,1);
+    box-shadow: 0 8px 20px var(--shadow);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  footer {
+    text-align: center; margin-top: 36px; padding-top: 20px;
+    border-top: 2px dashed var(--line); color: var(--ink-faint);
+    font-size: 0.84rem;
+  }
+  @media print {
+    .mode-bar, .editor-only, .toolbar, .toast { display: none !important; }
+    .day-panel { display: block !important; page-break-inside: avoid; }
+    .day-tabs { display: none; }
+    .day-panel::before {
+      content: attr(data-daylabel); display: block;
+      font-family: 'Gowun Batang', serif; font-weight: 700;
+      font-size: 1.3rem; margin: 20px 0 10px;
+    }
+  }
+  @media (max-width: 600px) {
+    h1 { font-size: 1.7rem; }
+    .edit-grid { grid-template-columns: 1fr; }
+    .sched-time { width: 62px; font-size: 0.86rem; }
+  }
+</style>
+</head>
+<body class="mode-view">
+<div class="wrap">
+  <header>
+    <div class="theme-ribbon">2박 3일 청소년부 수련회</div>
+    <h1>하나님 나라,<br><span class="em">하나님의 방식으로</span></h1>
+    <p class="subtitle">수련회 일정표</p>
+    <div class="retreat-info">
+      <span>📅 <input type="text" id="info-date" placeholder="날짜 입력" size="14"></span>
+      <span>📍 <input type="text" id="info-place" placeholder="장소 입력" size="12"></span>
+    </div>
+  </header>
+
+  <div class="mode-bar">
+    <button class="mode-btn active" id="btn-view" onclick="setMode('view')">일정 보기</button>
+    <button class="mode-btn" id="btn-edit" onclick="setMode('edit')">일정 짜기 (교사용)</button>
+  </div>
+
+  <div class="day-tabs" id="day-tabs"></div>
+  <div id="day-panels"></div>
+
+  <div class="toolbar">
+    <button class="btn" onclick="window.print()">🖨️ 인쇄 / PDF</button>
+    <button class="btn editor-only danger" onclick="resetAll()">전체 초기화</button>
+  </div>
+
+  <footer>하나님 나라, 하나님의 방식으로 — 청소년부 수련회 일정표</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ============================================
+// 데이터
+// ============================================
+const STORE = 'retreat_schedule';
+const DAYS = ['1일차', '2일차', '3일차'];
+const KINDS = {
+  worship: '예배·말씀',
+  program: '프로그램',
+  meal: '식사',
+  rest: '휴식·취침',
+  move: '이동·기타'
+};
+
+// 기본 일정 (예시로 채워둠 — 교사가 수정)
+const DEFAULT_DATA = {
+  info: { date: '', place: '' },
+  schedule: [
+    [ // 1일차
+      { id: 'd1a', time: '14:00', title: '집결 및 출발', kind: 'move', note: '교회 앞 집합' },
+      { id: 'd1b', time: '16:00', title: '숙소 도착 · 짐 정리', kind: 'move', note: '방 배정 확인' },
+      { id: 'd1c', time: '17:30', title: '저녁 식사', kind: 'meal', note: '' },
+      { id: 'd1d', time: '19:00', title: '여는 예배', kind: 'worship', note: '주제: 하나님 나라' },
+      { id: 'd1e', time: '21:00', title: '조별 모임 · 친교', kind: 'program', note: '아이스브레이킹' },
+      { id: 'd1f', time: '23:00', title: '취침', kind: 'rest', note: '' }
+    ],
+    [ // 2일차
+      { id: 'd2a', time: '07:00', title: '기상 · 경건의 시간', kind: 'worship', note: '' },
+      { id: 'd2b', time: '08:00', title: '아침 식사', kind: 'meal', note: '' },
+      { id: 'd2c', time: '09:30', title: '오전 말씀 집회', kind: 'worship', note: '주제: 하나님의 방식' },
+      { id: 'd2d', time: '12:00', title: '점심 식사', kind: 'meal', note: '' },
+      { id: 'd2e', time: '14:00', title: '레크리에이션 · 팀 활동', kind: 'program', note: '' },
+      { id: 'd2f', time: '17:30', title: '저녁 식사', kind: 'meal', note: '' },
+      { id: 'd2g', time: '19:00', title: '저녁 집회 · 헌신의 시간', kind: 'worship', note: '' },
+      { id: 'd2h', time: '21:30', title: '조별 나눔', kind: 'program', note: '' },
+      { id: 'd2i', time: '23:00', title: '취침', kind: 'rest', note: '' }
+    ],
+    [ // 3일차
+      { id: 'd3a', time: '07:00', title: '기상 · 경건의 시간', kind: 'worship', note: '' },
+      { id: 'd3b', time: '08:00', title: '아침 식사', kind: 'meal', note: '' },
+      { id: 'd3c', time: '09:30', title: '파송 예배', kind: 'worship', note: '결단과 파송' },
+      { id: 'd3d', time: '11:00', title: '짐 정리 · 숙소 정돈', kind: 'move', note: '' },
+      { id: 'd3e', time: '12:00', title: '점심 식사', kind: 'meal', note: '' },
+      { id: 'd3f', time: '13:30', title: '출발 · 귀가', kind: 'move', note: '' }
+    ]
+  ]
+};
+
+let data = load();
+let curDay = 0;
+let mode = 'view';
+
+function load() {
+  try {
+    const v = JSON.parse(localStorage.getItem(STORE));
+    if (v && v.schedule) return v;
+  } catch (e) {}
+  return JSON.parse(JSON.stringify(DEFAULT_DATA));
+}
+function save() {
+  try { localStorage.setItem(STORE, JSON.stringify(data)); } catch (e) {}
+}
+
+function toast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => t.classList.remove('show'), 2000);
+}
+function esc(s) {
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function uid() { return 's' + Date.now() + Math.floor(Math.random() * 999); }
+
+// ============================================
+// 모드 / 정보
+// ============================================
+function setMode(m) {
+  mode = m;
+  document.body.className = 'mode-' + m;
+  document.getElementById('btn-view').classList.toggle('active', m === 'view');
+  document.getElementById('btn-edit').classList.toggle('active', m === 'edit');
+  renderPanels();
+}
+
+const infoDate = document.getElementById('info-date');
+const infoPlace = document.getElementById('info-place');
+infoDate.value = data.info.date || '';
+infoPlace.value = data.info.place || '';
+infoDate.addEventListener('input', () => { data.info.date = infoDate.value; save(); });
+infoPlace.addEventListener('input', () => { data.info.place = infoPlace.value; save(); });
+
+// ============================================
+// 날짜 탭
+// ============================================
+function renderDayTabs() {
+  const tabs = document.getElementById('day-tabs');
+  tabs.innerHTML = DAYS.map((d, i) =>
+    `<button class="day-tab ${i === curDay ? 'active' : ''}" onclick="selectDay(${i})">${d}</button>`
+  ).join('');
+}
+function selectDay(i) {
+  curDay = i;
+  renderDayTabs();
+  renderPanels();
+}
+
+// ============================================
+// 일정 렌더링
+// ============================================
+function renderPanels() {
+  const wrap = document.getElementById('day-panels');
+  const items = data.schedule[curDay] || [];
+  // 시간순 정렬
+  items.sort((a, b) => a.time.localeCompare(b.time));
+
+  let listHtml;
+  if (items.length === 0) {
+    listHtml = '<div class="empty"><div class="big">🕊️</div>이 날의 일정이 비어 있어요.' +
+      (mode === 'edit' ? '<br>아래에서 일정을 추가해보세요.' : '') + '</div>';
+  } else {
+    listHtml = '<div class="schedule-list">' + items.map(it => `
+      <div class="sched-item">
+        <div class="sched-time">${esc(it.time)}</div>
+        <div class="sched-line"><div class="sched-dot"></div></div>
+        <div class="sched-card kind-${it.kind}">
+          <div class="sched-top">
+            <span class="sched-title">${esc(it.title)}</span>
+            <span class="kind-chip">${KINDS[it.kind] || ''}</span>
+            ${mode === 'edit' ? `<button class="sched-del" onclick="removeItem('${it.id}')">✕</button>` : ''}
+          </div>
+          ${it.note ? `<div class="sched-note">${esc(it.note)}</div>` : ''}
+        </div>
+      </div>`).join('') + '</div>';
+  }
+
+  const editHtml = `
+    <div class="edit-card editor-only">
+      <div class="edit-grid">
+        <div>
+          <label>시간</label>
+          <input type="time" id="e-time">
+        </div>
+        <div>
+          <label>일정 내용</label>
+          <input type="text" id="e-title" placeholder="예: 오전 말씀 집회">
+        </div>
+        <div>
+          <label>종류</label>
+          <select id="e-kind">
+            ${Object.entries(KINDS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}
+          </select>
+        </div>
+      </div>
+      <div class="edit-note-row">
+        <label>메모 (선택)</label>
+        <input type="text" id="e-note" placeholder="예: 주제, 장소, 준비물 등">
+      </div>
+      <button class="add-sched-btn" onclick="addItem()">${DAYS[curDay]}에 일정 추가</button>
+    </div>`;
+
+  wrap.innerHTML = `<div class="day-panel active" data-daylabel="${DAYS[curDay]}">${listHtml}${editHtml}</div>`;
+}
+
+function addItem() {
+  const time = document.getElementById('e-time').value;
+  const title = document.getElementById('e-title').value.trim();
+  const kind = document.getElementById('e-kind').value;
+  const note = document.getElementById('e-note').value.trim();
+  if (!time) { toast('시간을 입력해주세요'); return; }
+  if (!title) { toast('일정 내용을 입력해주세요'); return; }
+  data.schedule[curDay].push({ id: uid(), time, title, kind, note });
+  save();
+  renderPanels();
+  toast('일정을 추가했어요');
+}
+
+function removeItem(id) {
+  data.schedule[curDay] = data.schedule[curDay].filter(it => it.id !== id);
+  save();
+  renderPanels();
+  toast('일정을 삭제했어요');
+}
+
+function resetAll() {
+  if (!confirm('일정표를 기본 예시로 되돌릴까요? 직접 수정한 내용이 사라져요.')) return;
+  data = JSON.parse(JSON.stringify(DEFAULT_DATA));
+  save();
+  infoDate.value = '';
+  infoPlace.value = '';
+  renderPanels();
+  toast('일정표를 초기화했어요');
+}
+
+// ============================================
+// 초기화
+// ============================================
+renderDayTabs();
+renderPanels();
+</script>
+</body>
+</html>
